@@ -11,6 +11,8 @@ def worker(remote, render):
         if cmd == 'step':
             if not action == 'done':
                 next_state, reward, done, _ = env.step(action)
+                if done:
+                    reward = 0
                 remote.send((next_state, reward, done))
             else:
                 remote.send((0, 0, True))
