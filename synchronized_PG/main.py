@@ -4,19 +4,19 @@ from pg import PG
 import tensorflow as tf
 import numpy as np
 
-def train():
+def train():  
+    num_process = 1
     sess = tf.Session()
     r = tf.placeholder(tf.float32)
     rr = tf.summary.scalar('score', r)
     merged = tf.summary.merge_all()
-    writer = tf.summary.FileWriter('./board/process_6', sess.graph)
-    num_process = 6
+    writer = tf.summary.FileWriter('./board/process_'+str(num_process), sess.graph)
     state_space = 4
     action_space = 2
     pg = PG(sess, state_space, action_space, 0.0)
     sess.run(tf.global_variables_initializer())
     sub = SubprocVecEnv(num_process, render=False)
-    for i in range(200):
+    for i in range(100):
         each_terminal = [False] * num_process
         terminal = False
         state = sub.reset()
@@ -40,8 +40,8 @@ def train():
                 _ = sess.run(pg.atrain, feed_dict={pg.X: state, pg.Y: action, pg.advantages: discounted_reward})
                 summary = sess.run(merged, feed_dict={r: score})
                 writer.add_summary(summary, i)
+                print(score, i)
             state = next_state
-    
     sub.close()
 
 if __name__=='__main__':
