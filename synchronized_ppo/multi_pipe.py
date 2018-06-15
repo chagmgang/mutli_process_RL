@@ -46,7 +46,8 @@ def worker(remote, visualize):
             while not 331 in obs[0].observation['available_actions']:   #마린을 선택하기
                 actions = actAgent2Pysc2(100, obs)
                 obs = env.step(actions=[actions])
-            remote.send(obs)
+            state = obs2state(obs)
+            remote.send((obs, state, 0, 0, False))
 
         if cmd == 'close':
             remote.close()

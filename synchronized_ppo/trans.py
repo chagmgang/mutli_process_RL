@@ -22,11 +22,17 @@ def check_done(info, num_process):
         all_done = True
     return done, all_done
 
-def get_action(each_terminal, num_process):
-    actions = []
+def get_action(Policy, each_terminal, num_process, state):
+    actions, v_preds = [], []
+    
     for i in range(num_process):
         if not each_terminal[i]:
-            actions.append(0)
+            s = np.stack([state[i]]).astype(dtype=np.float32)
+            act, v_pred = Policy.act(obs=s, stochastic=True)
+            act, v_pred = np.asscalar(act), np.asscalar(v_pred)
+            actions.append(act)
+            v_preds.append(v_pred)
         else:
             actions.append('done')
-    return actions
+            v_preds.append('done')
+    return actions, v_preds
