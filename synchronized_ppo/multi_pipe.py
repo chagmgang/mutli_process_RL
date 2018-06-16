@@ -29,12 +29,12 @@ def worker(remote, visualize):
                 obs = env.step(actions=[a])
                 state = obs2state(obs)
                 distance = obs2distance(obs)
-                reward = -0.01
+                reward = -0.1
                 if distance < 0.03 or global_step == end_step - 1:
                     if distance < 0.03:
                         reward = 1
                     if global_step == end_step - 1:
-                        reward = -1
+                        reward = -0.1
                     done = True
                 remote.send((obs, state, action, reward, done))
             else:

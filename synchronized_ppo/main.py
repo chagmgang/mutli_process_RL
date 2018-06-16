@@ -7,7 +7,7 @@ from ppo import PPOTrain
 import tensorflow as tf
 
 def train():  
-    num_process = 3
+    num_process = 5
     sub = SubprocVecEnv(num_process, False)
     state_space = 16*16*2
     action_space = 4
@@ -23,7 +23,7 @@ def train():
             global_step = 0
             obs_s, state, action, reward, done = trans_data(info, num_process)
             while not terminal:
-                time.sleep(0.05)
+                time.sleep(0.02)
                 global_step += 1
                 action, v_pred = get_action(Policy, each_terminal, num_process, state)
                 info = sub.step(action, obs_s, [global_step]*num_process)
@@ -33,8 +33,18 @@ def train():
 
                 if terminal:
                     state_, action_, reward_, v_preds_next_, gaes_ = memory_stack(memory, num_process, state_space, PPO)
+                    PPO.assign_policy_parameters()
                     inp = [state_, action_, reward_, v_preds_next_, gaes_]
-                    for epoch in range(10):
+                    """
+                    for epoch in range(2):
+                        PPO.train(obs=inp[0],
+                                actions=inp[1],
+                                rewards=inp[2],
+                                v_preds_next=inp[3],
+                                gaes=inp[4])
+
+                    """
+                    for epoch in range(5):
                         sample_indices = np.random.randint(low=0, high=state_.shape[0], size=64)
                         sampled_inp = [np.take(a=t, indices=sample_indices, axis=0) for t in inp]
                         PPO.train(obs=sampled_inp[0],
@@ -42,9 +52,13 @@ def train():
                             rewards=sampled_inp[2],
                             v_preds_next=sampled_inp[3],
                             gaes=sampled_inp[4])
-                    print(sum(reward_), i)
+                    
+                    print(sum(reward_)/num_process, i)
                 state = next_state
         sub.close()
 
 if __name__=='__main__':
     train()
+
+
+    
