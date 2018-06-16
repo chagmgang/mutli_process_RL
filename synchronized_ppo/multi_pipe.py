@@ -19,7 +19,7 @@ def worker(remote, visualize):
     done = False
     while True:
         cmd, action, obs, global_step = remote.recv()
-        
+        end_step = 400
         if cmd == 'step':
             if not action == 'done':
                 while not 331 in obs[0].observation['available_actions']:   #마린을 선택하기
@@ -30,10 +30,10 @@ def worker(remote, visualize):
                 state = obs2state(obs)
                 distance = obs2distance(obs)
                 reward = -0.01
-                if distance < 0.03 or global_step == 100:
+                if distance < 0.03 or global_step == end_step - 1:
                     if distance < 0.03:
                         reward = 1
-                    if global_step == 100:
+                    if global_step == end_step - 1:
                         reward = -1
                     done = True
                 remote.send((obs, state, action, reward, done))
@@ -83,7 +83,7 @@ class SubprocVecEnv:
 
     def close(self):
         for remote in self.remotes:
-            remote.send(('close', 0, 0))
+            remote.send(('close', 0, 0, 0))
 
         for p in self.ps:
             p.join()

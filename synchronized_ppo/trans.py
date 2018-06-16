@@ -1,5 +1,35 @@
 import numpy as np
 
+def memory_stack(memory, num_process, state_space, PPO):
+    memory = np.array(memory)
+    state_, action_, reward_, v_preds_next_, gaes_ = np.empty(shape=[0, state_space]), np.array([]), np.array([]), np.array([]), np.array([])
+    for i in range(num_process):
+        state_stack, action_stack, reward_stack, v_pred_stack = np.empty(shape=[0, state_space]), np.array([]), np.array([]), np.array([])
+        for j in range(memory.shape[0]):
+            if type(memory[j][1][i]) != str:
+                state_stack = np.vstack([state_stack, memory[j][0][i]])
+                action_stack = np.append(action_stack, memory[j][1][i])
+                reward_stack = np.append(reward_stack, memory[j][2][i])
+                v_pred_stack = np.append(v_pred_stack, memory[j][3][i])
+
+        v_preds_next_stack = list(v_pred_stack)[1:] + [0]
+        gaes = PPO.get_gaes(rewards=reward_stack, v_preds=v_pred_stack,
+                            v_preds_next=v_preds_next_stack)
+        gaes = np.array(gaes).astype(dtype=np.float32)
+        gaes = (gaes - gaes.mean())/gaes.std()
+        action_stack = np.array(action_stack).astype(dtype=np.int32)
+        reward_stack = np.array(reward_stack).astype(dtype=np.float32)
+        v_preds_next_stack = np.array(v_preds_next_stack).astype(dtype=np.float32)
+
+        state_ = np.concatenate((state_, state_stack), axis=0)
+        action_ = np.append(action_, action_stack)
+        reward_ = np.append(reward_, reward_stack)
+        v_preds_next_ = np.append(v_preds_next_, v_preds_next_stack)
+        gaes_ = np.append(gaes_, gaes)
+        
+    return state_, action_, reward_, v_preds_next_, gaes_
+
+
 def trans_data(info, num_process):
     data, obs, state, action, reward, done = [], [], [], [], [], []
     for i in info:
