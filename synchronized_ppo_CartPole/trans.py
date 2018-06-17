@@ -16,7 +16,7 @@ def memory_stack(memory, num_process, state_space, PPO):
         gaes = PPO.get_gaes(rewards=reward_stack, v_preds=v_pred_stack,
                             v_preds_next=v_preds_next_stack)
         gaes = np.array(gaes).astype(dtype=np.float32)
-        gaes = (gaes - gaes.mean())/gaes.std()
+        gaes = (gaes - gaes.mean())
         action_stack = np.array(action_stack).astype(dtype=np.int32)
         reward_stack = np.array(reward_stack).astype(dtype=np.float32)
         v_preds_next_stack = np.array(v_preds_next_stack).astype(dtype=np.float32)
