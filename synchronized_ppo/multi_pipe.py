@@ -15,11 +15,11 @@ _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 
 def worker(remote, visualize):
     env = sc2_env.SC2Env(map_name='MoveToBeacon', step_mul=4, visualize=visualize,
-                        screen_size_px=(16, 16), minimap_size_px=(16, 16))
+                        screen_size_px=(64, 64), minimap_size_px=(64, 64))
     done = False
     while True:
         cmd, action, obs, global_step = remote.recv()
-        end_step = 400
+        end_step = 100
         if cmd == 'step':
             if not action == 'done':
                 while not 331 in obs[0].observation['available_actions']:   #마린을 선택하기
@@ -27,14 +27,17 @@ def worker(remote, visualize):
                     obs = env.step(actions=[actions])
                 a = actAgent2Pysc2(action, obs)
                 obs = env.step(actions=[a])
+                for i in range(1):
+                    actions = no_operation(obs)
+                    obs = env.step(actions=[actions])
                 state = obs2state(obs)
                 distance = obs2distance(obs)
-                reward = -0.1
+                reward = -0.01
                 if distance < 0.03 or global_step == end_step - 1:
                     if distance < 0.03:
                         reward = 1
                     if global_step == end_step - 1:
-                        reward = -0.1
+                        reward = -1
                     done = True
                 remote.send((obs, state, action, reward, done))
             else:

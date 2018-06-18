@@ -9,21 +9,24 @@ import tensorflow as tf
 def train():  
     num_process = 5
     sub = SubprocVecEnv(num_process, False)
-    state_space = 16*16*2
+    state_space = 2
     action_space = 4
     Policy = Policy_net('policy', state_space, action_space)
     Old_Policy = Policy_net('old_policy', state_space, action_space)
     PPO = PPOTrain(Policy, Old_Policy, gamma=0.95)
     with tf.Session() as sess:
+        tf.set_random_seed(1234)
         sess.run(tf.global_variables_initializer())
-        for i in range(10000):
+        i=0
+        while True:
+            i += 1
             memory = []
             info = sub.reset()
             terminal, each_terminal = False, [False] * num_process
             global_step = 0
             obs_s, state, action, reward, done = trans_data(info, num_process)
             while not terminal:
-                time.sleep(0.02)
+                time.sleep(0.05)
                 global_step += 1
                 action, v_pred = get_action(Policy, each_terminal, num_process, state)
                 info = sub.step(action, obs_s, [global_step]*num_process)
@@ -52,8 +55,8 @@ def train():
                             rewards=sampled_inp[2],
                             v_preds_next=sampled_inp[3],
                             gaes=sampled_inp[4])
-                    
-                    print(sum(reward_)/num_process, i)
+                    if i < 5100:
+                        print(sum(reward_)/(num_process), i)
                 state = next_state
         sub.close()
 
