@@ -37,6 +37,7 @@ def train():
                 if terminal:
                     state_, action_, reward_, v_preds_next_, gaes_ = memory_stack(memory, num_process, state_space, PPO)
                     PPO.assign_policy_parameters()
+                    
                     inp = [state_, action_, reward_, v_preds_next_, gaes_]
                     """
                     for epoch in range(2):
@@ -47,7 +48,7 @@ def train():
                                 gaes=inp[4])
 
                     """
-                    for epoch in range(5):
+                    for epoch in range(128):
                         sample_indices = np.random.randint(low=0, high=state_.shape[0], size=64)
                         sampled_inp = [np.take(a=t, indices=sample_indices, axis=0) for t in inp]
                         PPO.train(obs=sampled_inp[0],
