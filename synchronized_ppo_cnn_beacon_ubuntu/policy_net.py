@@ -11,21 +11,16 @@ class Policy_net:
             layer_1 = tf.layers.conv2d(inputs=reshape, filters=8, kernel_size=[4, 4], activation=tf.nn.relu)
             layer_2 = tf.layers.conv2d(inputs=layer_1, filters=16, kernel_size=[4, 4], activation=tf.nn.relu)
             layer_3 = tf.layers.conv2d(inputs=layer_2, filters=32, kernel_size=[4, 4], activation=tf.nn.relu)
-            layer_4 = tf.layers.conv2d(inputs=layer_3, filters=64, kernel_size=[4, 4], activation=tf.nn.relu)
-            layer_5 = tf.layers.conv2d(inputs=layer_4, filters=128, kernel_size=[4, 4], activation=tf.nn.relu)
-            layer_6 = tf.layers.conv2d(inputs=layer_5, filters=256, kernel_size=[4, 4], activation=tf.nn.relu)
-            layer_7 = tf.reshape(layer_6, [-1, 14*14*256])
+            layer_4 = tf.reshape(layer_3, [-1, 23*23*32])
             with tf.variable_scope('policy_net'):
-                layer_8 = tf.layers.dense(inputs=layer_7, units=14*256, activation=tf.nn.relu)
-                layer_9 = tf.layers.dense(inputs=layer_8, units=20*20, activation=tf.nn.relu)
-                layer_10 = tf.layers.dense(inputs=layer_9, units=20, activation=tf.nn.relu)
-                self.act_probs = tf.layers.dense(inputs=tf.divide(layer_10, temp), units=action_size, activation=tf.nn.softmax)
+                layer_5 = tf.layers.dense(inputs=layer_4, units=23*23, activation=tf.nn.relu)
+                layer_6 = tf.layers.dense(inputs=layer_5, units=20, activation=tf.nn.relu)
+                self.act_probs = tf.layers.dense(inputs=tf.divide(layer_6, temp), units=action_size, activation=tf.nn.softmax)
 
             with tf.variable_scope('value_net'):
-                layer_8 = tf.layers.dense(inputs=layer_7, units=14*256, activation=None, trainable=True, kernel_initializer=tf.contrib.layers.xavier_initializer())
-                layer_9 = tf.layers.dense(inputs=layer_8, units=20*20, activation=None, trainable=True, kernel_initializer=tf.contrib.layers.xavier_initializer())
-                layer_10 = tf.layers.dense(inputs=layer_9, units=20, activation=None, trainable=True, kernel_initializer=tf.contrib.layers.xavier_initializer())
-                self.v_preds = tf.layers.dense(inputs=layer_10, units=1, activation=None, trainable=True)
+                layer_5 = tf.layers.dense(inputs=layer_4, units=23*23, activation=None, trainable=True, kernel_initializer=tf.contrib.layers.xavier_initializer())
+                layer_6 = tf.layers.dense(inputs=layer_5, units=20, activation=None, trainable=True, kernel_initializer=tf.contrib.layers.xavier_initializer())
+                self.v_preds = tf.layers.dense(inputs=layer_6, units=1, activation=None, trainable=True)
 
             self.act_stochastic = tf.multinomial(tf.log(self.act_probs), num_samples=1)
             self.act_stochastic = tf.reshape(self.act_stochastic, shape=[-1])

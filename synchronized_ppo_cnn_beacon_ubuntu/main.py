@@ -25,7 +25,7 @@ def train():
     with tf.Session() as sess:
         saver = tf.train.Saver()
         #sess.run(tf.global_variables_initializer())
-        saver.restore(sess, './synch_ubuntu_cnn_mineral/model')
+        saver.restore(sess, './synch_ubuntu_cnn_beacon/model')
         i=0
         #writer = tf.summary.FileWriter('./board/synch_ubuntu_cnn_mineral', sess.graph)
         while True:
@@ -50,10 +50,10 @@ def train():
 
                     inp = [state_, action_,
                            reward_, v_preds_next_, gaes_]
-                    for epoch in range(40):
+                    for epoch in range(5):
                         print('training', i, epoch)
-                        time.sleep(0.1)
-                        sample_indices = np.random.randint(low=0, high=state_.shape[0], size=16)
+                        #time.sleep(0.1)
+                        sample_indices = np.random.randint(low=0, high=state_.shape[0], size=64)
                         sampled_inp = [np.take(a=t, indices=sample_indices, axis=0) for t in inp]
                         PPO.train(obs=sampled_inp[0],
                             actions=sampled_inp[1],
@@ -62,7 +62,7 @@ def train():
                             gaes=sampled_inp[4])
                     #summary = sess.run(merged, feed_dict={r:sum(reward_)/(num_process)})
                     #writer.add_summary(summary, i)
-                    saver.save(sess, './synch_ubuntu_cnn_mineral/model')
+                    saver.save(sess, './synch_ubuntu_cnn_beacon/model')
                     print(sum(reward_)/(num_process), i)
                 state = next_state
         sub.close()

@@ -6,6 +6,7 @@ from pysc2.lib import actions, features
 import matplotlib.pyplot as plt
 from action_group import actAgent2Pysc2, no_operation
 from state_group import obs2state, obs2distance
+import numpy as np
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
@@ -16,8 +17,8 @@ def worker(remote, visualize):
     env =  sc2_env.SC2Env(
                         map_name='MoveToBeacon',
                         agent_interface_format=sc2_env.parse_agent_interface_format(
-                            feature_screen=64,
-                            feature_minimap=64,
+                            feature_screen=32,
+                            feature_minimap=32,
                             rgb_screen=None,
                             rgb_minimap=None,
                             action_space=None,
@@ -25,41 +26,42 @@ def worker(remote, visualize):
                         step_mul=4,
                         game_steps_per_episode=None,
                         disable_fog=False,
-                    visualize=True)
+                    visualize=False)
     done = False
     while True:
         cmd, action, obs, global_step = remote.recv()
-        end_step = 100
+        end_step = 400
         if cmd == 'step':
             if not action == 'done':
-                #while not 331 in obs[0].observation['available_actions']:   #마린을 선택하기
-                #    actions = actAgent2Pysc2(100, obs)
-                #    obs = env.step(actions=[actions])
-                a = actAgent2Pysc2(action, obs)
+                available_action, state = obs
+                a = actAgent2Pysc2(action, state)
                 obs = env.step(actions=[a])
-                for i in range(1):
-                    actions = no_operation(obs)
-                    obs = env.step(actions=[actions])
-                state = obs2state(obs)
                 distance = obs2distance(obs)
+                state = obs2state(obs)
+                obs = (obs[0].observation.available_actions, state)
+                
+                #reward shaping
+
                 reward = -0.1
-                obs = obs[0].observation.feature_screen.base[4]
                 if distance < 0.03 or global_step == end_step - 1:
                     if distance < 0.03:
                         reward = 1
+                    if global_step == end_step - 1:
+                        reward = -1
                     done = True
                 remote.send((obs, state, action, reward, done))
             else:
                 remote.send((0, 0, 0, 0, True))
 
         if cmd == 'reset':
+            pre_num_mineral = 20
             done = False
             obs = env.reset()          #env 초기화
-            while not 331 in obs[0].observation['available_actions']:   #마린을 선택하기
+            while not 331 in obs[0].observation.available_actions:   #마린을 선택하기
                 actions = actAgent2Pysc2(100, obs)
                 obs = env.step(actions=[actions])
             state = obs2state(obs)
-            obs = obs[0].observation.feature_screen.base[4]
+            obs = (obs[0].observation.available_actions, state)
             remote.send((obs, state, 0, 0, False))
 
         if cmd == 'close':

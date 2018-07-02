@@ -28,18 +28,20 @@ def no_operation(obs):
     return action
 
 def move_unit(obs, mode):       # mode= 1,2,3,4 & up,down,left,right
+    obs = obs.reshape(32,32,2)
+    obs = obs[:,:,0]
     selected_unit_position_y, selected_unit_position_x = (
                 obs == friendly).nonzero()
     target_x, target_y = np.mean(selected_unit_position_x), np.mean(selected_unit_position_y)
 
     if mode == 1:   #up
-        dest_x, dest_y = np.clip(target_x, 0, 63), np.clip(target_y - 1, 0, 63)
+        dest_x, dest_y = np.clip(target_x, 0, 31), np.clip(target_y - 1, 0, 31)
     elif mode == 2: #down
-        dest_x, dest_y = np.clip(target_x, 0, 63), np.clip(target_y + 1, 0, 63)
+        dest_x, dest_y = np.clip(target_x, 0, 31), np.clip(target_y + 1, 0, 31)
     elif mode == 3: #left
-        dest_x, dest_y = np.clip(target_x - 1, 0, 63), np.clip(target_y, 0, 63)
+        dest_x, dest_y = np.clip(target_x - 1, 0, 31), np.clip(target_y, 0, 31)
     elif mode == 4: #right
-        dest_x, dest_y = np.clip(target_x + 1, 0, 63), np.clip(target_y, 0, 63)
+        dest_x, dest_y = np.clip(target_x + 1, 0, 31), np.clip(target_y, 0, 31)
     action = actions.FunctionCall(_MOVE_SCREEN, [_NOT_QUEUED, [dest_x, dest_y]])  # move Up
 
     return action
@@ -53,6 +55,6 @@ def actAgent2Pysc2(i, obs):
         action = move_unit(obs, 3)
     elif i == 3:
         action = move_unit(obs, 4)
-    elif i ==100:
+    elif i == 100:
         action = actions.FunctionCall(_SELECT_ARMY, [_SELECT_ALL])
     return action
